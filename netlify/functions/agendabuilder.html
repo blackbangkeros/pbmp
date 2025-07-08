@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BANGKEROS Meeting & Governance App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .ai-suggestion { animation: slideInUp 0.5s ease-out; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .gemini-button { background: linear-gradient(to right, #4c82fb, #2dd4bf); }
+        .modal-container { background-color: rgba(0, 0, 0, 0.6); }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div id="app-container" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="flex items-center justify-between pb-4 border-b-2 border-gray-200 mb-6">
+            <div class="flex items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/js-fan/logo-hosting/main/bangkeros_seal.png" alt="BANGKEROS Logo" class="h-16 w-16" onerror="this.onerror=null;this.src='https://placehold.co/64x64/ffffff/059669?text=B';">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">BANGKEROS Meeting & Governance Portal</h1>
+                    <p id="page-subtitle" class="text-md text-gray-600">Main Menu</p>
+                </div>
+            </div>
+             <button id="back-to-menu-btn" class="hidden px-4 py-2 bg-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300">&larr; Back to Main Menu</button>
+        </header>
+
+        <!-- PAGE 1: Main Menu -->
+        <div id="main-menu-page" class="page active">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-bold mb-4">Schedule a New Meeting</h2>
+                        <form id="schedule-meeting-form" class="space-y-4">
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium">Meeting Host</label>
+                                    <select id="meeting-host" class="w-full mt-1 p-2 border rounded-md">
+                                        <option>Board of Directors</option>
+                                        <option>Luntian Committee</option>
+                                        <option>GAD Committee</option>
+                                        <option>General Assembly</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium">Meeting Type</label>
+                                    <select id="meeting-type" class="w-full mt-1 p-2 border rounded-md">
+                                        <option>Regular</option>
+                                        <option>Special</option>
+                                        <option>Annual GA</option>
+                                        <option>Mid-Year GA</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <button type="submit" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700">Create Meeting & Set Agenda</button>
+                            </div>
+                        </form>
+                    </div>
+                     <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-bold mb-4">Upcoming Meetings</h2>
+                        <div id="upcoming-meetings-list" class="space-y-3">
+                           <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-200 flex justify-between items-center">
+                               <div>
+                                   <p class="font-bold">Special Board of Directors Meeting</p>
+                                   <p class="text-sm text-gray-600">July 8, 2025 - 9:00 AM</p>
+                               </div>
+                               <button class="join-meeting-btn px-4 py-2 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600">Enter Meeting</button>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-bold mb-4">Communications Inbox</h2>
+                    <div id="inbox-list" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- JS will populate this -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 2: Agenda Builder -->
+        <div id="agenda-builder-page" class="page">
+            <h2 class="text-2xl font-bold mb-4">Agenda Builder: <span id="agenda-meeting-title"></span></h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-bold mb-4">Order of Business</h3>
+                    <div id="agenda-items-list" class="space-y-2"></div>
+                    <div class="mt-4">
+                        <input id="new-agenda-item" type="text" class="w-full p-2 border rounded-md" placeholder="Type new agenda item and press Enter">
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4">Add from Inbox</h3>
+                        <div id="inbox-for-agenda" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4">Invite Attendees</h3>
+                        <textarea id="attendees-list" class="w-full h-24 p-2 border rounded-md" placeholder="Enter emails or names, separated by commas"></textarea>
+                    </div>
+                    <button id="finalize-agenda-btn" class="w-full px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700">Finalize Agenda & Send Notice</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: Live Meeting Portal -->
+        <div id="live-meeting-page" class="page">
+            <!-- Content from previous version -->
+        </div>
+
+    </div>
+
+    <!-- Modals -->
+    <div id="role-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-container"></div>
+    <div id="post-meeting-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-container"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- ELEMENTS ---
+    const pages = {
+        mainMenu: document.getElementById('main-menu-page'),
+        agendaBuilder: document.getElementById('agenda-builder-page'),
+        liveMeeting: document.getElementById('live-meeting-page'),
+    };
+    const pageSubtitle = document.getElementById('page-subtitle');
+    const backToMenuBtn = document.getElementById('back-to-menu-btn');
+    const scheduleMeetingForm = document.getElementById('schedule-meeting-form');
+    const inboxList = document.getElementById('inbox-list');
+    const agendaMeetingTitle = document.getElementById('agenda-meeting-title');
+    const agendaItemsList = document.getElementById('agenda-items-list');
+    const newAgendaItemInput = document.getElementById('new-agenda-item');
+    const inboxForAgenda = document.getElementById('inbox-for-agenda');
+    const finalizeAgendaBtn = document.getElementById('finalize-agenda-btn');
+
+    // --- MOCK DATABASE ---
+    const mockInbox = [
+        { id: 1, subject: 'Feedback on Tour Guide Service', sender: 'Guest: John Smith', status: 'Pending' },
+        { id: 2, subject: 'Proposal: Luntian Aquaculture Project', sender: 'Fishermen Sector', status: 'Pending' },
+        { id: 3, subject: 'Request for Financial Assistance', sender: 'Member: Maria Santos', status: 'Pending' },
+    ];
+    let currentMeeting = {};
+
+    // --- FUNCTIONS ---
+    function showPage(pageName) {
+        backToMenuBtn.classList.toggle('hidden', pageName === 'mainMenu');
+        for (const key in pages) {
+            pages[key].classList.toggle('active', key === pageName);
+        }
+        pageSubtitle.textContent = {
+            mainMenu: 'Main Menu',
+            agendaBuilder: 'Agenda Builder',
+            liveMeeting: `Live Meeting: ${currentMeeting.title || ''}`
+        }[pageName];
+    }
+
+    function renderInbox(containerId, isAgendaBuilder) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        const pendingItems = mockInbox.filter(item => item.status === 'Pending');
+        if (pendingItems.length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500 text-center">Inbox is empty.</p>';
+            return;
+        }
+        pendingItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'p-3 bg-gray-50 rounded-lg border flex justify-between items-center';
+            div.innerHTML = `<div class="text-sm"><p class="font-semibold">${item.subject}</p><p class="text-xs text-gray-500">From: ${item.sender}</p></div>`;
+            if (isAgendaBuilder) {
+                const addButton = document.createElement('button');
+                addButton.innerHTML = `&plus;`;
+                addButton.className = 'px-2 py-0.5 bg-emerald-200 text-emerald-800 rounded-full hover:bg-emerald-300';
+                addButton.onclick = () => addAgendaItemFromInbox(item);
+                div.appendChild(addButton);
+            }
+            container.appendChild(div);
+        });
+    }
+
+    function renderAgenda() {
+        agendaItemsList.innerHTML = '';
+        currentMeeting.agenda.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'p-3 bg-emerald-50 rounded-lg border flex justify-between items-center';
+            div.innerHTML = `<span><strong>${index + 1}.</strong> ${item.title}</span>`;
+            const removeButton = document.createElement('button');
+            removeButton.innerHTML = `&times;`;
+            removeButton.className = 'px-2 py-0.5 bg-red-200 text-red-800 rounded-full hover:bg-red-300';
+            removeButton.onclick = () => removeAgendaItem(index);
+            div.appendChild(removeButton);
+            agendaItemsList.appendChild(div);
+        });
+    }
+
+    function addAgendaItem(title) {
+        if (title.trim() === '') return;
+        currentMeeting.agenda.push({ title: title, fromInbox: false });
+        renderAgenda();
+        newAgendaItemInput.value = '';
+    }
+
+    function addAgendaItemFromInbox(inboxItem) {
+        currentMeeting.agenda.push({ title: inboxItem.subject, fromInbox: true, communicationId: inboxItem.id });
+        inboxItem.status = 'On Agenda';
+        renderAgenda();
+        renderInbox('inbox-for-agenda', true);
+    }
+
+    function removeAgendaItem(index) {
+        const item = currentMeeting.agenda[index];
+        if (item.fromInbox) {
+            const inboxItem = mockInbox.find(i => i.id === item.communicationId);
+            if (inboxItem) inboxItem.status = 'Pending';
+        }
+        currentMeeting.agenda.splice(index, 1);
+        renderAgenda();
+        renderInbox('inbox-for-agenda', true);
+    }
+
+    // --- EVENT LISTENERS ---
+    backToMenuBtn.addEventListener('click', () => showPage('mainMenu'));
+
+    scheduleMeetingForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const host = document.getElementById('meeting-host').value;
+        const type = document.getElementById('meeting-type').value;
+        
+        currentMeeting = {
+            title: `${host} - ${type} Meeting`,
+            agenda: [
+                { title: "Call to Order", fromInbox: false },
+                { title: "Determination of Quorum", fromInbox: false },
+                { title: "Reading and Approval of Previous Minutes", fromInbox: false },
+            ]
+        };
+        
+        agendaMeetingTitle.textContent = currentMeeting.title;
+        renderAgenda();
+        renderInbox('inbox-for-agenda', true);
+        showPage('agendaBuilder');
+    });
+
+    newAgendaItemInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addAgendaItem(e.target.value);
+        }
+    });
+
+    finalizeAgendaBtn.addEventListener('click', () => {
+        if (currentMeeting.agenda.length <= 3) {
+            alert('Please add at least one main agenda item.');
+            return;
+        }
+        currentMeeting.agenda.push({ title: "Other Matters", fromInbox: false });
+        currentMeeting.agenda.push({ title: "Adjournment", fromInbox: false });
+        
+        alert('Meeting Scheduled and Notice Sent!');
+        console.log('Final Agenda:', currentMeeting);
+        console.log('Attendees:', document.getElementById('attendees-list').value);
+        
+        pages.liveMeeting.innerHTML = `
+            <div class="text-center p-8 bg-white rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold">Meeting Portal Ready</h2>
+                <p class="mt-2 text-gray-600">The Live Meeting Portal for "${currentMeeting.title}" has been created.</p>
+                <p class="mt-4 text-sm">In a complete application, clicking a link from an email notification would open the live meeting interface.</p>
+            </div>
+        `;
+        showPage('liveMeeting');
+    });
+
+    // --- INITIALIZATION ---
+    renderInbox('inbox-list', false);
+});
+</script>
+
+</body>
+</html>
