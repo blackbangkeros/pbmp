@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BANGKEROS Meeting & Governance App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .ai-suggestion { animation: slideInUp 0.5s ease-out; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .gemini-button { background: linear-gradient(to right, #4c82fb, #2dd4bf); }
+        .modal-container { background-color: rgba(0, 0, 0, 0.6); }
+        #pre-landing-page {
+            transition: opacity 0.5s;
+        }
+        #pre-landing-page.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div id="app-container" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="flex items-center justify-between pb-4 border-b-2 border-gray-200 mb-6">
+            <div class="flex items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/js-fan/logo-hosting/main/bangkeros_seal.png" alt="BANGKEROS Logo" class="h-16 w-16" onerror="this.onerror=null;this.src='https://placehold.co/64x64/ffffff/059669?text=B';">
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900">BANGKEROS Meeting & Governance Portal</h1>
+                    <p id="page-subtitle" class="text-md text-gray-600">Main Menu</p>
+                </div>
+            </div>
+             <button id="back-to-menu-btn" class="hidden px-4 py-2 bg-gray-200 text-sm font-medium rounded-lg hover:bg-gray-300">&larr; Back to Main Menu</button>
+        </header>
+
+        <!-- PAGE 1: Main Menu -->
+        <div id="main-menu-page" class="page active">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-bold mb-4">Schedule a New Meeting</h2>
+                        <form id="schedule-meeting-form" class="space-y-4">
+                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium">Meeting Host</label>
+                                    <select id="meeting-host" class="w-full mt-1 p-2 border rounded-md">
+                                        <option>Board of Directors</option>
+                                        <option>Luntian Committee</option>
+                                        <option>GAD Committee</option>
+                                        <option>General Assembly</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium">Meeting Type</label>
+                                    <select id="meeting-type" class="w-full mt-1 p-2 border rounded-md">
+                                        <option>Regular</option>
+                                        <option>Special</option>
+                                        <option>Annual GA</option>
+                                        <option>Mid-Year GA</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <button type="submit" class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700">Create Meeting & Set Agenda</button>
+                            </div>
+                        </form>
+                    </div>
+                     <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-bold mb-4">Upcoming Meetings</h2>
+                        <div id="upcoming-meetings-list" class="space-y-3">
+                           <!-- JS will populate this -->
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-bold mb-4">Communications Inbox</h2>
+                    <div id="inbox-list" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- JS will populate this -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 2: Agenda Builder -->
+        <div id="agenda-builder-page" class="page">
+            <h2 class="text-2xl font-bold mb-1">Agenda Builder: <span id="agenda-meeting-title"></span></h2>
+            <p class="text-gray-500 mb-6">Set the meeting details, build the agenda, and select attendees.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="text-sm font-medium">Date</label>
+                            <input type="date" id="meeting-date" class="w-full mt-1 p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium">Time</label>
+                            <input type="time" id="meeting-time" class="w-full mt-1 p-2 border rounded-md">
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium">Venue</label>
+                            <input type="text" id="meeting-venue" class="w-full mt-1 p-2 border rounded-md" value="BANGKEROS Main Office">
+                        </div>
+                    </div>
+                    <h3 class="text-lg font-bold mb-4 border-t pt-4">Order of Business</h3>
+                    <div id="agenda-items-list" class="space-y-2"></div>
+                    <div class="mt-4">
+                        <input id="new-agenda-item" type="text" class="w-full p-2 border rounded-md" placeholder="Type new agenda item and press Enter">
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4">Add from Inbox</h3>
+                        <div id="inbox-for-agenda" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-bold mb-4">Invite Attendees</h3>
+                        <div id="attendees-checklist" class="space-y-2">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+                    <button id="finalize-agenda-btn" class="w-full px-6 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700">Finalize Agenda & View Notice</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: Live Meeting Portal -->
+        <div id="live-meeting-page" class="page">
+            <!-- Order of Business Sidebar -->
+            <div id="order-sidebar" class="fixed left-0 top-0 h-full w-64 bg-white border-r shadow-lg z-40 flex flex-col p-4 hidden">
+                <h2 class="text-lg font-bold mb-4">Order of Business</h2>
+                <ul id="sidebar-agenda-list" class="space-y-2 flex-1 overflow-y-auto"></ul>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                            <h2 id="minutes-title" class="text-xl font-bold">Live Minutes & Proceedings</h2>
+                            <div id="secretary-controls" class="hidden space-x-2">
+                                <button id="record-voice-btn" class="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 017 8a1 1 0 10-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path></svg>
+                                    Record
+                                </button>
+                                <button id="adjourn-meeting-btn" class="w-full sm:w-auto px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700">Adjourn Meeting</button>
+                            </div>
+                             <div id="start-meeting-control" class="hidden">
+                                <button id="start-meeting-btn" class="w-full sm:w-auto px-5 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700">Start Meeting</button>
+                            </div>
+                        </div>
+                        <textarea id="meeting-minutes" class="w-full h-80 p-3 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="Meeting not yet started..." readonly></textarea>
+                        <!-- Navigation controls for agenda items -->
+                        <div id="agenda-nav-controls" class="flex justify-between mt-4">
+                            <button id="prev-agenda-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Previous</button>
+                            <button id="next-agenda-btn" class="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">Next</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-bold mb-4">Order of Business</h2>
+                        <ul id="agenda-list" class="space-y-2"></ul>
+                    </div>
+                    <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-lg shadow-lg">
+                        <h2 id="ai-guide-title" class="text-xl font-bold mb-4 text-white flex items-center">
+                            <span class="gemini-button w-8 h-8 rounded-full flex items-center justify-center mr-3 text-white">✨</span>
+                            Luntian AI Guide
+                        </h2>
+                        <div id="ai-guide" class="space-y-3 text-sm text-slate-200 bg-slate-700/50 p-4 rounded-lg min-h-[150px]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="role-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-container"></div>
+    <div id="post-meeting-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-container"></div>
+    <div id="agenda-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-container">
+         <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col transform scale-95">
+            <header class="p-4 border-b flex justify-between items-center">
+                <h2 class="text-lg font-bold">Confirm & Finalize Meeting</h2>
+                <button data-action="close-modal" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </header>
+            <div id="agenda-output" class="p-6 overflow-y-auto text-sm">
+                <!-- Generated Notice will be injected here -->
+            </div>
+            <footer class="p-4 bg-gray-100 border-t flex justify-end space-x-4">
+                <button data-action="close-modal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button id="confirm-and-schedule-btn" class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Confirm & Schedule</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Pre-Landing Page -->
+    <div id="pre-landing-page" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-100 to-emerald-300">
+        <img src="https://raw.githubusercontent.com/js-fan/logo-hosting/main/bangkeros_seal.png" alt="BANGKEROS Logo" class="h-24 w-24 mb-6 rounded-full shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/96x96/ffffff/059669?text=B';">
+        <h1 class="text-3xl font-bold mb-2 text-emerald-900">Welcome to BANGKEROS Governance Portal</h1>
+        <p class="mb-4 text-lg text-emerald-800">Empowering Meetings. Enabling Good Governance.</p>
+        <div class="mb-6 w-full max-w-xs">
+            <label for="department-select" class="block mb-2 text-emerald-900 font-semibold">Select your department:</label>
+            <select id="department-select" class="w-full px-4 py-2 rounded border border-emerald-400 focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="" disabled selected>Select department</option>
+                <option>General Assembly</option>
+                <option>Board of Director</option>
+                <option>Audit Committee</option>
+                <option>Election Committee</option>
+                <option>Ethics Committee</option>
+                <option>Mediation and Concillation Committee</option>
+                <option>Education and Training Committee</option>
+                <option>GAD Committee</option>
+                <option>Luntian Committee</option>
+                <option>Bussiness Management</option>
+                <option>Financial Management</option>
+                <option>HR Management</option>
+            </select>
+        </div>
+        <button id="enter-app-btn" class="px-8 py-3 bg-emerald-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-emerald-700 transition" disabled>Enter Portal</button>
+    </div>
+
+    <!-- Department Landing Pages -->
+    <div id="landing-General-Assembly" class="department-landing hidden">
+        <div class="flex flex-col items-center justify-center min-h-screen bg-emerald-50">
+            <h2 class="text-3xl font-bold mb-2 text-emerald-900">Welcome, General Assembly!</h2>
+            <p class="mb-6 text-lg text-emerald-800">This is your dedicated portal for General Assembly activities.</p>
+            <button class="enter-main-btn px-8 py-3 bg-emerald-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-emerald-700 transition">Proceed to Portal</button>
+        </div>
+    </div>
+    <div id="landing-Board-of-Director" class="department-landing hidden">
+        <div class="flex flex-col items-center justify-center min-h-screen bg-emerald-50">
+            <h2 class="text-3xl font-bold mb-2 text-emerald-900">Welcome, Board of Director!</h2>
+            <p class="mb-6 text-lg text-emerald-800">This is your dedicated portal for Board of Director activities.</p>
+            <button class="enter-main-btn px-8 py-3 bg-emerald-600 text-white text-lg font-semibold rounded-lg shadow hover:bg-emerald-700 transition">Proceed to Portal</button>
+        </div>
+    </div>
+    <!-- Repeat for each department, changing the id and text accordingly -->
+
+    <!-- Profile Landing Page -->
+<div id="profile-page" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-100 to-emerald-300">
+    <div class="bg-white rounded-lg shadow-xl p-8 flex flex-col items-center w-full max-w-md">
+        <img src="https://raw.githubusercontent.com/js-fan/logo-hosting/main/bangkeros_seal.png" alt="Profile" class="h-24 w-24 mb-4 rounded-full shadow" onerror="this.onerror=null;this.src='https://placehold.co/96x96/ffffff/059669?text=U';">
+        <h2 class="text-2xl font-bold mb-2 text-emerald-900">Welcome!</h2>
+        <form id="profile-form" class="w-full flex flex-col gap-4">
+            <input id="profile-name" type="text" class="px-4 py-2 border rounded" placeholder="Full Name" required>
+            <input id="profile-email" type="email" class="px-4 py-2 border rounded" placeholder="Email" required>
+            <select id="profile-department" class="px-4 py-2 border rounded" required>
+                <option value="" disabled selected>Select Department</option>
+                <option>General Assembly</option>
+                <option>Board of Director</option>
+                <option>Audit Committee</option>
+                <option>Election Committee</option>
+                <option>Ethics Committee</option>
+                <option>Mediation and Concillation Committee</option>
+                <option>Education and Training Committee</option>
+                <option>GAD Committee</option>
+                <option>Luntian Committee</option>
+                <option>Bussiness Management</option>
+                <option>Financial Management</option>
+                <option>HR Management</option>
+            </select>
+            <button type="submit" class="px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">Enter Portal</button>
+        </form>
+    </div>
+</div>
+
+<!-- Login Page -->
+<div id="login-page" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-100 to-emerald-300 hidden">
+    <div class="bg-white rounded-lg shadow-xl p-8 flex flex-col items-center w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-emerald-900">Login</h2>
+        <form id="login-form" class="w-full flex flex-col gap-4">
+            <input id="login-username" type="text" class="px-4 py-2 border rounded" placeholder="Username" required>
+            <input id="login-password" type="password" class="px-4 py-2 border rounded" placeholder="Password" required>
+            <button type="submit" class="px-6 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">Login</button>
+        </form>
+        <div id="login-error" class="text-red-600 mt-2 hidden">Invalid credentials. Please try again.</div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- ELEMENTS ---
+    const appContainer = document.getElementById('app-container');
+    const pages = {
+        mainMenu: document.getElementById('main-menu-page'),
+        agendaBuilder: document.getElementById('agenda-builder-page'),
+        liveMeeting: document.getElementById('live-meeting-page'),
+    };
+    const pageSubtitle = document.getElementById('page-subtitle');
+    const backToMenuBtn = document.getElementById('back-to-menu-btn');
+    const upcomingMeetingsList = document.getElementById('upcoming-meetings-list');
+    
+    // --- MOCK DATABASE ---
+    const mockInbox = [
+        { id: 1, subject: 'Feedback on Tour Guide Service', sender: 'Guest: John Smith', status: 'Pending' },
+        { id: 2, subject: 'Proposal: Luntian Aquaculture Project', sender: 'Fishermen Sector', status: 'Pending' },
+    ];
+    let mockUpcomingMeetings = [
+        { id: 1, title: 'Special Board of Directors Meeting', date: '2025-07-08', time: '09:00' }
+    ];
+    let currentMeeting = {};
+
+    // --- DEPARTMENTS LIST ---
+    const departments = [
+        "Board of Directors", "Luntian Committee", "GAD Committee", "Education Committee",
+        "Election Committee", "Audit Committee", "Ethics Committee", "Mediation Committee",
+        "Management Staff", "General Assembly"
+    ];
+
+    // --- FUNCTIONS ---
+    function showPage(pageName) {
+        backToMenuBtn.classList.toggle('hidden', pageName === 'mainMenu');
+        for (const key in pages) {
+            pages[key].classList.toggle('active', key === pageName);
+        }
+        pageSubtitle.textContent = {
+            mainMenu: 'Main Menu',
+            agendaBuilder: 'Agenda Builder',
+            liveMeeting: `Live Meeting: ${currentMeeting.title || ''}`
+        }[pageName];
+
+        // Hide Finalize Agenda button if not Secretary or Presiding Officer
+        if (pageName === 'agendaBuilder') {
+            const finalizeBtn = document.getElementById('finalize-agenda-btn');
+            if (userRole === 'Secretary' || userRole === 'Presiding Officer') {
+                finalizeBtn.style.display = '';
+            } else {
+                finalizeBtn.style.display = 'none';
+            }
+        }
+        // Show/hide sidebar
+        document.getElementById('order-sidebar').classList.toggle('hidden', pageName !== 'liveMeeting');
+    }
+
+    function renderInbox(containerId, isAgendaBuilder) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        const pendingItems = mockInbox.filter(item => item.status === 'Pending');
+        if (pendingItems.length === 0) {
+            container.innerHTML = '<p class="text-sm text-gray-500 text-center">Inbox is empty.</p>';
+            return;
+        }
+        pendingItems.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'p-3 bg-gray-50 rounded-lg border flex justify-between items-center';
+            div.innerHTML = `<div class="text-sm"><p class="font-semibold">${item.subject}</p><p class="text-xs text-gray-500">From: ${item.sender}</p></div>`;
+            if (isAgendaBuilder) {
+                const addButton = document.createElement('button');
+                addButton.innerHTML = `&plus;`;
+                addButton.className = 'px-2 py-0.5 bg-emerald-200 text-emerald-800 rounded-full hover:bg-emerald-300';
+                addButton.dataset.inboxId = item.id;
+                div.appendChild(addButton);
+            }
+            container.appendChild(div);
+        });
+    }
+
+    function renderAgenda() {
+        const agendaItemsList = document.getElementById('agenda-items-list');
+        agendaItemsList.innerHTML = '';
+        currentMeeting.agenda.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'p-3 bg-emerald-50 rounded-lg border flex justify-between items-center';
+            div.innerHTML = `<span><strong>${index + 1}.</strong> ${item.title}</span>`;
+            const removeButton = document.createElement('button');
+            removeButton.innerHTML = `&times;`;
+            removeButton.className = 'px-2 py-0.5 bg-red-200 text-red-800 rounded-full hover:bg-red-300';
+            removeButton.dataset.index = index;
+            div.appendChild(removeButton);
+            agendaItemsList.appendChild(div);
+        });
+    }
+
+    function addAgendaItem(title) {
+        if (title.trim() === '') return;
+        currentMeeting.agenda.push({ title: title, fromInbox: false });
+        renderAgenda();
+        document.getElementById('new-agenda-item').value = '';
+    }
+
+    function addAgendaItemFromInbox(inboxItem) {
+        currentMeeting.agenda.push({ title: inboxItem.subject, fromInbox: true, communicationId: inboxItem.id });
+        inboxItem.status = 'On Agenda';
+        renderAgenda();
+        renderInbox('inbox-for-agenda', true);
+    }
+
+    function removeAgendaItem(index) {
+        const item = currentMeeting.agenda[index];
+        if (item.fromInbox) {
+            const inboxItem = mockInbox.find(i => i.id === item.communicationId);
+            if (inboxItem) inboxItem.status = 'Pending';
+        }
+        currentMeeting.agenda.splice(index, 1);
+        renderAgenda();
+        renderInbox('inbox-for-agenda', true);
+    }
+
+    function renderUpcomingMeetings() {
+        upcomingMeetingsList.innerHTML = '';
+        mockUpcomingMeetings.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(meeting => {
+            const meetingDate = new Date(`${meeting.date}T${meeting.time}`);
+            const dateString = meetingDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const timeString = meetingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+            upcomingMeetingsList.innerHTML += `
+                <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <p class="font-bold text-center sm:text-left">${meeting.title}</p>
+                        <p class="text-sm text-gray-600 text-center sm:text-left">${dateString} - ${timeString}</p>
+                    </div>
+                    <button data-action="join-meeting" data-meeting-id="${meeting.id}" class="w-full sm:w-auto px-4 py-2 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600">Enter Meeting</button>
+                </div>`;
+        });
+    }
+
+    function finalizeAgenda() {
+        if (currentMeeting.agenda.length <= 3) {
+            alert('Please add at least one main agenda item.');
+            return;
+        }
+        currentMeeting.agenda.push({ title: "Other Matters", fromInbox: false });
+        currentMeeting.agenda.push({ title: "Adjournment", fromInbox: false });
+        
+        const date = document.getElementById('meeting-date').value;
+        const time = document.getElementById('meeting-time').value;
+        const venue = document.getElementById('meeting-venue').value;
+        const attendees = Array.from(document.querySelectorAll('#attendees-checklist input:checked')).map(cb => cb.value);
+
+        currentMeeting.date = date;
+        currentMeeting.time = time;
+        currentMeeting.venue = venue;
+        currentMeeting.attendees = attendees;
+        
+        const outputContainer = document.getElementById('agenda-output');
+        const meetingDate = new Date(`${date}T${time}`);
+        const dateString = meetingDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const timeString = meetingDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+        outputContainer.innerHTML = `
+            <div class="p-4 border">
+                <h3 class="font-bold text-center text-lg">NOTICE OF MEETING</h3>
+                <p class="text-center text-sm mb-4">${currentMeeting.title}</p>
+                <p><strong>Date:</strong> ${dateString}</p>
+                <p><strong>Time:</strong> ${timeString}</p>
+                <p><strong>Venue:</strong> ${venue}</p>
+                <p class="mt-4 font-bold">AGENDA:</p>
+                <ol class="list-decimal list-inside mt-2">
+                    ${currentMeeting.agenda.map(item => `<li>${item.title}</li>`).join('')}
+                </ol>
+                <p class="mt-4 font-bold">Attendees:</p>
+                <p>${attendees.join(', ')}</p>
+            </div>
+        `;
+        document.getElementById('agenda-confirm-modal').classList.remove('hidden');
+    }
+
+    function confirmAndSchedule() {
+        mockUpcomingMeetings.push({
+            id: Date.now(),
+            title: currentMeeting.title,
+            date: currentMeeting.date,
+            time: currentMeeting.time
+        });
+        
+        renderUpcomingMeetings();
+        document.getElementById('agenda-confirm-modal').classList.add('hidden');
+        showPage('mainMenu');
+        alert('Meeting Scheduled and Notice Sent!');
+    }
+
+    let userRole = null;
+    let currentAgendaIndex = 0;
+    let userDepartment = null;
+    let userProfile = {};
+
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        userProfile = {
+            name: document.getElementById('profile-name').value,
+            email: document.getElementById('profile-email').value,
+            department: document.getElementById('profile-department').value
+        };
+        document.getElementById('profile-page').classList.add('hidden');
+        // Show department landing if exists, else show main menu
+        document.querySelectorAll('.department-landing').forEach(div => div.classList.add('hidden'));
+        const landingId = `landing-${userProfile.department.replace(/\s+/g, '-').replace(/&/g, '').replace(/Committee/g, '').replace(/and/g, '').replace(/-+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '')}`;
+        const landingDiv = document.getElementById(landingId);
+        if (landingDiv) {
+            landingDiv.classList.remove('hidden');
+        } else {
+            document.getElementById('app-container').classList.remove('hidden');
+            showPage('mainMenu');
+        }
+    });
+
+    // Hide all pages except pre-landing initially
+    document.getElementById('app-container').classList.add('hidden');
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('profile-page').classList.add('hidden');
+    document.querySelectorAll('.department-landing').forEach(div => div.classList.add('hidden'));
+
+    // Department selection
+    const departmentSelect = document.getElementById('department-select');
+    const enterAppBtn = document.getElementById('enter-app-btn');
+
+    departmentSelect.addEventListener('change', function() {
+        userDepartment = this.value;
+        enterAppBtn.disabled = !userDepartment;
+    });
+
+    enterAppBtn.addEventListener('click', function() {
+        if (userDepartment) {
+            document.getElementById('pre-landing-page').classList.add('hidden');
+            document.getElementById('login-page').classList.remove('hidden');
+        }
+    });
+
+    // Login logic (replace with real authentication as needed)
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        // Simple mock: accept any non-empty username/password
+        if (username && password) {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('login-error').classList.add('hidden');
+            document.getElementById('profile-page').classList.remove('hidden');
+            // Optionally, store username for profile
+            userProfile.username = username;
+            userProfile.department = userDepartment;
+        } else {
+            document.getElementById('login-error').classList.remove('hidden');
+        }
+    });
+
+    // Profile form logic (as before)
+    document.getElementById('profile-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        userProfile.name = document.getElementById('profile-name').value;
+        userProfile.email = document.getElementById('profile-email').value;
+        userProfile.department = document.getElementById('profile-department').value;
+        document.getElementById('profile-page').classList.add('hidden');
+        // Show department landing if exists, else show main menu
+        document.querySelectorAll('.department-landing').forEach(div => div.classList.add('hidden'));
+        const landingId = `landing-${userProfile.department.replace(/\s+/g, '-').replace(/&/g, '').replace(/Committee/g, '').replace(/and/g, '').replace(/-+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '')}`;
+        const landingDiv = document.getElementById(landingId);
+        if (landingDiv) {
+            landingDiv.classList.remove('hidden');
+        } else {
+            document.getElementById('app-container').classList.remove('hidden');
+            showPage('mainMenu');
+        }
+    });
+
+    // Hide all pages except pre-landing initially
+    document.getElementById('app-container').classList.add('hidden');
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('profile-page').classList.add('hidden');
+    document.querySelectorAll('.department-landing').forEach(div => div.classList.add('hidden'));
+
+    // --- FUNCTIONS (CONT'D) ---
+    // Show role selection modal
+    function showRoleModal() {
+        const modal = document.getElementById('role-modal');
+        modal.innerHTML = `
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 flex flex-col items-center">
+                <h2 class="text-lg font-bold mb-4">Select Your Role</h2>
+                <div class="w-full space-y-2 mb-4">
+                    <button class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700" data-role="Presiding Officer">Presiding Officer</button>
+                    <button class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700" data-role="Secretary">Secretary</button>
+                    <button class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700" data-role="Member of the Board">Member of the Board</button>
+                    <button class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700" data-role="Committee Officer">Committee Officer</button>
+                    <button class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700" data-role="Management Personnel">Management Personnel</button>
+                    <button class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700" data-role="Regular Member">Regular Member</button>
+                    <button class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700" data-role="Visitor">Visitor</button>
+                </div>
+                <button data-action="close-modal" class="mt-2 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancel</button>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+    }
+
+    // Show recording consent modal
+    function showRecordingConsentModal() {
+        const modal = document.getElementById('post-meeting-modal');
+        modal.innerHTML = `
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 flex flex-col items-center">
+                <h2 class="text-lg font-bold mb-4">Recording Notice</h2>
+                <p class="mb-4 text-center">This meeting will be recorded. By joining, you consent to audio recording.</p>
+                <button id="consent-recording-btn" class="w-full px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700">I Understand & Join</button>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+    }
+
+    // Render sidebar agenda
+    function renderSidebarAgenda() {
+        const sidebar = document.getElementById('order-sidebar');
+        const list = document.getElementById('sidebar-agenda-list');
+        if (!currentMeeting.agenda) return;
+        list.innerHTML = '';
+        currentMeeting.agenda.forEach((item, idx) => {
+            list.innerHTML += `<li class="p-2 rounded ${idx === currentAgendaIndex ? 'bg-emerald-100 font-bold' : ''}">${idx + 1}. ${item.title}</li>`;
+        });
+        sidebar.classList.remove('hidden');
+    }
+
+    // Show AI suggestion for Board of Directors
+    function showAISuggestion() {
+        const aiGuide = document.getElementById('ai-guide');
+        const currentItem = currentMeeting.agenda[currentAgendaIndex];
+        const nextItem = currentMeeting.agenda[currentAgendaIndex + 1];
+        let suggestion = '';
+
+        if (!currentItem) {
+            aiGuide.innerHTML = `<div class="ai-suggestion">No agenda item selected.</div>`;
+            return;
+        }
+
+        // Advanced suggestions based on agenda item
+        if (/call to order/i.test(currentItem.title)) {
+            suggestion = "Remind the Chair to formally open the meeting and check if all key participants are present.";
+        } else if (/quorum/i.test(currentItem.title)) {
+            suggestion = "Secretary should verify attendance and confirm quorum is met before proceeding.";
+        } else if (/approval/i.test(currentItem.title)) {
+            suggestion = "Review the previous minutes. Ask for corrections, then motion for approval.";
+        } else if (/other matters/i.test(currentItem.title)) {
+            suggestion = "Open the floor for any additional topics or urgent concerns.";
+        } else if (/adjournment/i.test(currentItem.title)) {
+            suggestion = "Thank everyone for attending and formally close the meeting.";
+        } else {
+            suggestion = `Discuss: <strong>${currentItem.title}</strong>.`;
+            if (nextItem) {
+                suggestion += `<br>Next: <strong>${nextItem.title}</strong>. Prepare for transition.`;
+            }
+        }
+
+        aiGuide.innerHTML = `<div class="ai-suggestion">${suggestion}</div>`;
+    }
+
+    // Show deliberation guide for Secretary/Presiding Officer
+    function showDeliberationGuide() {
+        const aiGuide = document.getElementById('ai-guide');
+        aiGuide.innerHTML = `
+            <div class="ai-suggestion">
+                <strong>Deliberation Flow Guide:</strong>
+                <ol class="list-decimal ml-4 mt-2 space-y-1 text-slate-100">
+                    <li>Announce agenda item: <b>${currentMeeting.agenda[currentAgendaIndex]?.title}</b></li>
+                    <li>Open floor for discussion</li>
+                    <li>Record key points and decisions</li>
+                    <li>Move to next agenda item when ready</li>
+                </ol>
+            </div>
+        `;
+    }
+
+    // Call to Order button logic
+    function renderCallToOrderButton() {
+        const controls = document.getElementById('secretary-controls');
+        if (!controls) return;
+        let btn = document.getElementById('call-to-order-btn');
+        if (!btn && (userRole === 'Secretary' || userRole === 'Presiding Officer')) {
+            btn = document.createElement('button');
+            btn.id = 'call-to-order-btn';
+            btn.className = 'w-full sm:w-auto px-4 py-2 bg-emerald-700 text-white text-sm font-semibold rounded-lg hover:bg-emerald-800';
+            btn.textContent = 'Call to Order';
+            controls.prepend(btn);
+        }
+        if (btn) btn.style.display = (userRole === 'Secretary' || userRole === 'Presiding Officer') ? '' : 'none';
+    }
+
+    // Handle Call to Order
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'call-to-order-btn') {
+            currentAgendaIndex = 0;
+            document.getElementById('meeting-minutes').value = "Meeting called to order.\n";
+        }
+    });
+
+    // Update Live Meeting UI based on role (update this function)
+    function updateLiveMeetingUI() {
+        document.getElementById('secretary-controls').classList.toggle('hidden', userRole !== 'Secretary' && userRole !== 'Presiding Officer');
+        document.getElementById('start-meeting-control').classList.toggle('hidden', true); // Hide default start button
+        renderCallToOrderButton();
+        renderSidebarAgenda();
+        // Show/hide agenda navigation controls
+        document.getElementById('agenda-nav-controls').style.display = (userRole === 'Secretary' || userRole === 'Presiding Officer') ? 'flex' : 'none';
+        // Update AI guide
+        if (userRole === 'Secretary' || userRole === 'Presiding Officer') {
+            showDeliberationGuide();
+        } else if (userRole === 'Member of the Board') {
+            showAISuggestion();
+        } else {
+            document.getElementById('ai-guide').innerHTML = '';
+        }
+    }
+
+    // Advanced AI suggestion (example)
+    function showAISuggestion() {
+        const aiGuide = document.getElementById('ai-guide');
+        const currentItem = currentMeeting.agenda[currentAgendaIndex];
+        const nextItem = currentMeeting.agenda[currentAgendaIndex + 1];
+        let suggestion = '';
+
+        if (!currentItem) {
+            aiGuide.innerHTML = `<div class="ai-suggestion">No agenda item selected.</div>`;
+            return;
+        }
+
+        // Advanced suggestions based on agenda item
+        if (/call to order/i.test(currentItem.title)) {
+            suggestion = "Remind the Chair to formally open the meeting and check if all key participants are present.";
+        } else if (/quorum/i.test(currentItem.title)) {
+            suggestion = "Secretary should verify attendance and confirm quorum is met before proceeding.";
+        } else if (/approval/i.test(currentItem.title)) {
+            suggestion = "Review the previous minutes. Ask for corrections, then motion for approval.";
+        } else if (/other matters/i.test(currentItem.title)) {
+            suggestion = "Open the floor for any additional topics or urgent concerns.";
+        } else if (/adjournment/i.test(currentItem.title)) {
+            suggestion = "Thank everyone for attending and formally close the meeting.";
+        } else {
+            suggestion = `Discuss: <strong>${currentItem.title}</strong>.`;
+            if (nextItem) {
+                suggestion += `<br>Next: <strong>${nextItem.title}</strong>. Prepare for transition.`;
+            }
+        }
+
+        aiGuide.innerHTML = `<div class="ai-suggestion">${suggestion}</div>`;
+    }
+
+    // When entering live meeting, show sidebar and guides
+    function showPage(pageName) {
+        backToMenuBtn.classList.toggle('hidden', pageName === 'mainMenu');
+        for (const key in pages) {
+            pages[key].classList.toggle('active', key === pageName);
+        }
+        pageSubtitle.textContent = {
+            mainMenu: 'Main Menu',
+            agendaBuilder: 'Agenda Builder',
+            liveMeeting: `Live Meeting: ${currentMeeting.title || ''}`
+        }[pageName];
+
+        // Hide Finalize Agenda button if not Secretary or Presiding Officer
+        if (pageName === 'agendaBuilder') {
+            const finalizeBtn = document.getElementById('finalize-agenda-btn');
+            if (userRole === 'Secretary' || userRole === 'Presiding Officer') {
+                finalizeBtn.style.display = '';
+            } else {
+                finalizeBtn.style.display = 'none';
+            }
+        }
+        // Show/hide sidebar
+        document.getElementById('order-sidebar').classList.toggle('hidden', pageName !== 'liveMeeting');
+    }
+
+    // --- EVENT LISTENERS ---
+    document.getElementById('schedule-meeting-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const host = document.getElementById('meeting-host').value;
+        const type = document.getElementById('meeting-type').value;
+        currentMeeting = {
+            title: `${host} - ${type} Meeting`,
+            agenda: [
+                { title: "Call to Order", fromInbox: false },
+                { title: "Determination of Quorum", fromInbox: false },
+                { title: "Reading and Approval of Previous Minutes", fromInbox: false },
+            ]
+        };
+        
+        document.getElementById('agenda-meeting-title').textContent = currentMeeting.title;
+        
+        const today = new Date();
+        today.setDate(today.getDate() + 1);
+        document.getElementById('meeting-date').value = today.toISOString().split('T')[0];
+        document.getElementById('meeting-time').value = '09:00';
+
+        const attendeesContainer = document.getElementById('attendees-checklist');
+        attendeesContainer.innerHTML = '';
+        departments.forEach(dept => {
+            attendeesContainer.innerHTML += `
+                <div class="flex items-center">
+                    <input id="dept-${dept.replace(/\s+/g, '-')}" type="checkbox" name="attendees" value="${dept}" class="h-4 w-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500">
+                    <label for="dept-${dept.replace(/\s+/g, '-')}" class="ml-2 block text-sm text-gray-900">${dept}</label>
+                </div>`;
+        });
+
+        renderAgenda();
+        renderInbox('inbox-for-agenda', true);
+        showPage('agendaBuilder');
+    });
+
+    document.getElementById('new-agenda-item').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addAgendaItem(e.target.value);
+        }
+    });
+
+    // --- INITIALIZATION ---
+    showPage('mainMenu');
+    renderInbox('inbox-list', false);
+    renderUpcomingMeetings();
+
+    document.getElementById('agenda-confirm-modal').addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.matches('[data-action="close-modal"]')) {
+            target.closest('.modal-container').classList.add('hidden');
+        } else if (target.matches('#confirm-and-schedule-btn')) {
+            confirmAndSchedule();
+        }
+    });
+
+    document.getElementById('role-modal').addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.dataset.role) {
+            // Save role if needed: currentMeeting.role = target.dataset.role;
+            document.getElementById('role-modal').classList.add('hidden');
+            showPage('liveMeeting');
+            // Optionally, display the selected role somewhere in the meeting page
+        } else if (target.matches('[data-action="close-modal"]')) {
+            document.getElementById('role-modal').classList.add('hidden');
+        }
+    });
+
+    // Enter app button
+    document.getElementById('enter-app-btn').addEventListener('click', () => {
+        document.getElementById('pre-landing-page').classList.add('hidden');
+        document.getElementById('app-container').classList.remove('hidden');
+        showPage('mainMenu');
+    });
+
+    document.getElementById('pre-landing-page').addEventListener('click', function(e) {
+        if (e.target.id === 'enter-app-btn') {
+            document.getElementById('pre-landing-page').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+        }
+    });
+
+    // Hide app container initially
+    document.getElementById('app-container').classList.add('hidden');
+});
+</script>
+
+</body>
+</html>
