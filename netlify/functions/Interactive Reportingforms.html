@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luntian Park Protector Program: Official Reporting Forms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            border-color: #10B981;
+            background-color: #10B981;
+            color: white;
+            font-weight: 600;
+        }
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable-area, .printable-area * {
+                visibility: visible;
+            }
+            .printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900">Luntian Park Protector Program</h1>
+            <p class="mt-2 text-lg text-gray-600">Official Reporting System</p>
+        </header>
+
+        <div id="confirmation-message" class="hidden fixed top-5 right-5 bg-blue-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 animate-pulse">
+            Report Logged Successfully!
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg">
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 no-print">
+                <nav class="-mb-px flex flex-wrap gap-x-1 sm:gap-x-4 px-4" aria-label="Tabs">
+                    <button onclick="changeTab('patrol')" class="tab-button active shrink-0 border-b-2 font-medium text-sm py-3 px-2 sm:px-4 text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="patrol">Daily Patrol Log</button>
+                    <button onclick="changeTab('incident')" class="tab-button shrink-0 border-b-2 font-medium text-sm py-3 px-2 sm:px-4 text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="incident">Incident Report</button>
+                    <button onclick="changeTab('qrt')" class="tab-button shrink-0 border-b-2 font-medium text-sm py-3 px-2 sm:px-4 text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="qrt">QRT Response</button>
+                    <button onclick="changeTab('transport')" class="tab-button shrink-0 border-b-2 font-medium text-sm py-3 px-2 sm:px-4 text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="transport">Transport Log</button>
+                    <button onclick="changeTab('equipment')" class="tab-button shrink-0 border-b-2 font-medium text-sm py-3 px-2 sm:px-4 text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="equipment">Outpost Checklist</button>
+                </nav>
+            </div>
+
+            <div class="p-6 sm:p-8 printable-area">
+                <!-- Daily Patrol Log Form -->
+                <div id="patrol" class="form-section active">
+                    <form id="patrol-form" class="space-y-6">
+                        <div class="border-b border-gray-900/10 pb-6">
+                            <h2 class="text-xl font-semibold leading-7 text-gray-900">A. Luntian Ranger Daily Patrol Log</h2>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Log general observations and activities for every routine patrol shift.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="sm:col-span-3"><label for="patrol-date" class="block text-sm font-medium leading-6 text-gray-900">Date</label><input type="date" id="patrol-date" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="sm:col-span-3"><label for="outpost-name" class="block text-sm font-medium leading-6 text-gray-900">Outpost Name</label><input type="text" id="outpost-name" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="col-span-full"><label for="patrol-leader" class="block text-sm font-medium leading-6 text-gray-900">Patrol Team Leader</label><input type="text" id="patrol-leader" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="col-span-full"><label for="rangers-on-duty" class="block text-sm font-medium leading-6 text-gray-900">Rangers on Duty</label><textarea id="rangers-on-duty" rows="3" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></textarea></div>
+                            <div class="sm:col-span-3"><label for="patrol-start-time" class="block text-sm font-medium leading-6 text-gray-900">Patrol Start Time</label><input type="time" id="patrol-start-time" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="sm:col-span-3"><label for="patrol-end-time" class="block text-sm font-medium leading-6 text-gray-900">Patrol End Time</label><input type="time" id="patrol-end-time" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="sm:col-span-3"><label for="area-covered" class="block text-sm font-medium leading-6 text-gray-900">Area / Route Covered</label><input type="text" id="area-covered" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="sm:col-span-3"><label for="vessel-used" class="block text-sm font-medium leading-6 text-gray-900">Vessel / Speedboat Used</label><input type="text" id="vessel-used" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                        </div>
+
+                        <div class="mt-8">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900">Patrol Observations</h3>
+                            <div class="mt-4 space-y-4">
+                                <div class="flex items-start"><div class="flex h-6 items-center"><input type="checkbox" id="obs-tourist" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"></div><div class="ml-3 text-sm leading-6"><label for="obs-tourist" class="font-medium text-gray-900">Tourist Activity</label><input type="text" placeholder="Notes..." class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div></div>
+                                <div class="flex items-start"><div class="flex h-6 items-center"><input type="checkbox" id="obs-wildlife" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"></div><div class="ml-3 text-sm leading-6"><label for="obs-wildlife" class="font-medium text-gray-900">Wildlife Sightings</label><input type="text" placeholder="Notes..." class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div></div>
+                                <div class="flex items-start"><div class="flex h-6 items-center"><input type="checkbox" id="obs-env" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"></div><div class="ml-3 text-sm leading-6"><label for="obs-env" class="font-medium text-gray-900">Environmental Conditions</label><input type="text" placeholder="Notes..." class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div></div>
+                                <div class="flex items-start"><div class="flex h-6 items-center"><input type="checkbox" id="obs-tito" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"></div><div class="ml-3 text-sm leading-6"><label for="obs-tito" class="font-medium text-gray-900">Luntian TITO Collection</label><input type="text" placeholder="Notes..." class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div></div>
+                                <div class="flex items-start"><div class="flex h-6 items-center"><input type="checkbox" id="obs-community" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"></div><div class="ml-3 text-sm leading-6"><label for="obs-community" class="font-medium text-gray-900">Interactions w/ Community</label><input type="text" placeholder="Notes..." class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div></div>
+                                <div class="flex items-start"><div class="flex h-6 items-center"><input type="checkbox" id="obs-equipment" class="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"></div><div class="ml-3 text-sm leading-6"><label for="obs-equipment" class="font-medium text-gray-900">Equipment Status Check</label><input type="text" placeholder="Notes..." class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div></div>
+                            </div>
+                        </div>
+                        <div class="col-span-full"><label for="patrol-summary" class="block text-sm font-medium leading-6 text-gray-900">Summary of Shift</label><textarea id="patrol-summary" rows="4" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></textarea></div>
+                    </form>
+                </div>
+
+                <!-- Incident Report Form -->
+                <div id="incident" class="form-section">
+                     <form id="incident-form" class="space-y-6">
+                        <div class="border-b border-gray-900/10 pb-6">
+                            <h2 class="text-xl font-semibold leading-7 text-gray-900">B. Luntian Ranger Incident Report</h2>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Document specific incidents for official reporting to authorities.</p>
+                        </div>
+                        <!-- Form fields for Incident Report -->
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                            <div class="sm:col-span-3"><label for="incident-date" class="block text-sm font-medium leading-6 text-gray-900">Date of Incident</label><input type="date" id="incident-date" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="sm:col-span-3"><label for="incident-time" class="block text-sm font-medium leading-6 text-gray-900">Time of Incident</label><input type="time" id="incident-time" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="sm:col-span-3"><label for="reporting-rangers" class="block text-sm font-medium leading-6 text-gray-900">Reporting Ranger(s)</label><input type="text" id="reporting-rangers" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="sm:col-span-3"><label for="incident-location" class="block text-sm font-medium leading-6 text-gray-900">Exact Location (GPS Coords)</label><input type="text" id="incident-location" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                            <div class="col-span-full"><label for="incident-type" class="block text-sm font-medium leading-6 text-gray-900">Type of Incident</label><select id="incident-type" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"><option>Illegal Fishing</option><option>Environmental Damage</option><option>Safety Violation</option><option>Wildlife Distress</option><option>Other</option></select></div>
+                            <div class="col-span-full"><label for="incident-narration" class="block text-sm font-medium leading-6 text-gray-900">Detailed Narration of Incident</label><textarea id="incident-narration" rows="5" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></textarea></div>
+                        </div>
+                     </form>
+                </div>
+
+                <!-- QRT Response Form -->
+                <div id="qrt" class="form-section">
+                    <form id="qrt-form" class="space-y-6">
+                        <div class="border-b border-gray-900/10 pb-6">
+                            <h2 class="text-xl font-semibold leading-7 text-gray-900">C. QRT Emergency Response Form</h2>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Document every activation of the Quick Response Team.</p>
+                        </div>
+                        <!-- Form fields for QRT Response -->
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                             <div class="sm:col-span-3"><label for="qrt-date" class="block text-sm font-medium leading-6 text-gray-900">Date of Alert</label><input type="date" id="qrt-date" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                             <div class="sm:col-span-3"><label for="qrt-time" class="block text-sm font-medium leading-6 text-gray-900">Time of Alert</label><input type="time" id="qrt-time" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                             <div class="col-span-full"><label for="qrt-emergency-type" class="block text-sm font-medium leading-6 text-gray-900">Nature of Emergency</label><select id="qrt-emergency-type" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"><option>Vessel Engine Trouble</option><option>Medical Emergency</option><option>Missing Person/Vessel</option><option>Other</option></select></div>
+                             <div class="col-span-full"><label for="qrt-chronology" class="block text-sm font-medium leading-6 text-gray-900">Chronology of Response Actions</label><textarea id="qrt-chronology" rows="5" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></textarea></div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Community Transport Log -->
+                <div id="transport" class="form-section">
+                    <form id="transport-form" class="space-y-6">
+                        <div class="border-b border-gray-900/10 pb-6">
+                            <h2 class="text-xl font-semibold leading-7 text-gray-900">D. Community Transport Log (Student Ferry)</h2>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Record all student transport services provided.</p>
+                        </div>
+                        <!-- Form fields for Transport Log -->
+                         <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                             <div class="sm:col-span-3"><label for="transport-date" class="block text-sm font-medium leading-6 text-gray-900">Date</label><input type="date" id="transport-date" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                             <div class="sm:col-span-3"><label for="transport-ranger" class="block text-sm font-medium leading-6 text-gray-900">Ranger in Charge</label><input type="text" id="transport-ranger" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                         </div>
+                         <div id="transport-entries" class="space-y-4">
+                            <!-- JS will add entries here -->
+                         </div>
+                         <button type="button" onclick="addTransportEntry()" class="text-sm font-semibold text-green-600 hover:text-green-500 no-print">+ Add Trip Entry</button>
+                    </form>
+                </div>
+
+                <!-- Equipment Checklist -->
+                <div id="equipment" class="form-section">
+                    <form id="equipment-form" class="space-y-6">
+                        <div class="border-b border-gray-900/10 pb-6">
+                            <h2 class="text-xl font-semibold leading-7 text-gray-900">E. Outpost Inventory & Status Check</h2>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">To be completed at the start of every shift change.</p>
+                        </div>
+                        <!-- Form fields for Equipment Checklist -->
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                             <div class="sm:col-span-2"><label for="checklist-date" class="block text-sm font-medium leading-6 text-gray-900">Date</label><input type="date" id="checklist-date" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                             <div class="sm:col-span-2"><label for="checklist-time" class="block text-sm font-medium leading-6 text-gray-900">Time</label><input type="time" id="checklist-time" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                             <div class="sm:col-span-2"><label for="checklist-outpost" class="block text-sm font-medium leading-6 text-gray-900">Outpost</label><input type="text" id="checklist-outpost" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                             <div class="sm:col-span-3"><label for="incoming-leader" class="block text-sm font-medium leading-6 text-gray-900">Incoming Team Leader</label><input type="text" id="incoming-leader" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                             <div class="sm:col-span-3"><label for="outgoing-leader" class="block text-sm font-medium leading-6 text-gray-900">Outgoing Team Leader</label><input type="text" id="outgoing-leader" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600"></div>
+                        </div>
+                        <div id="equipment-list" class="mt-6">
+                            <!-- JS will populate this -->
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end gap-x-6 border-t border-gray-200 px-6 py-4 no-print">
+                <button type="button" onclick="clearActiveForm()" class="text-sm font-semibold leading-6 text-gray-900">Clear Form</button>
+                <button type="button" onclick="printReport()" class="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500">Print Report</button>
+                <button type="button" onclick="submitActiveForm()" class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500">Submit Log</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeTab = 'patrol';
+
+        function changeTab(tabId) {
+            // Update active tab variable
+            activeTab = tabId;
+
+            // Hide all form sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Deactivate all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'border-green-600', 'text-green-600');
+                button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+
+            // Show the selected form section
+            document.getElementById(tabId).classList.add('active');
+
+            // Activate the selected tab button
+            const activeButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+            activeButton.classList.add('active', 'border-green-600', 'text-green-600');
+            activeButton.classList.remove('border-transparent', 'text-gray-500');
+        }
+
+        function submitActiveForm() {
+            const form = document.querySelector(`#${activeTab}-form`);
+            if (form) {
+                // In a real application, you would gather form data and send to a server.
+                // For this interactive demo, we just show a confirmation.
+                console.log(`Submitting data from ${activeTab} form...`);
+                
+                const confirmationMessage = document.getElementById('confirmation-message');
+                confirmationMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    confirmationMessage.classList.add('hidden');
+                }, 3000);
+            }
+        }
+
+        function clearActiveForm() {
+            const form = document.querySelector(`#${activeTab}-form`);
+            if (form) {
+                form.reset();
+                if (activeTab === 'transport') {
+                    document.getElementById('transport-entries').innerHTML = '';
+                    addTransportEntry();
+                }
+            }
+        }
+        
+        function printReport() {
+            window.print();
+        }
+
+        // --- Specific form logic ---
+
+        // For Community Transport Log
+        let transportEntryCount = 0;
+        function addTransportEntry() {
+            transportEntryCount++;
+            const entryHtml = `
+                <div class="grid grid-cols-4 gap-4 items-center" id="transport-entry-${transportEntryCount}">
+                    <div><label class="sr-only">Time</label><input type="time" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"></div>
+                    <div><label class="sr-only">From</label><input type="text" placeholder="From (Sitio)" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"></div>
+                    <div><label class="sr-only">To</label><input type="text" placeholder="To (School/Sitio)" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"></div>
+                    <div><label class="sr-only"># of Students</label><input type="number" min="0" placeholder="# Students" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"></div>
+                </div>
+            `;
+            document.getElementById('transport-entries').insertAdjacentHTML('beforeend', entryHtml);
+        }
+
+        // For Equipment Checklist
+        const equipmentItems = [
+            { category: 'Vessels', item: 'Speedboat 1', quantity: 1 },
+            { category: 'Vessels', item: 'Speedboat 2', quantity: 1 },
+            { category: 'Communications', item: 'VHF Radio', quantity: 1 },
+            { category: 'Communications', item: 'Starlink Terminal', quantity: 1 },
+            { category: 'Safety & Rescue', item: 'First Aid Kit (Advanced)', quantity: 1 },
+            { category: 'Safety & Rescue', item: 'Oxygen Tank', quantity: 1 },
+            { category: 'Safety & Rescue', item: 'Spine Board', quantity: 1 },
+            { category: 'Dive Gear', item: 'Scuba Tanks', quantity: 4 },
+            { category: 'Dive Gear', item: 'BCDs', quantity: 4 },
+            { category: 'Monitoring', item: 'Binoculars', quantity: 2 },
+            { category: 'Monitoring', item: 'Underwater Camera', quantity: 1 },
+            { category: 'Outpost Supplies', item: 'Potable Water (Containers)', quantity: 2 },
+            { category: 'Outpost Supplies', item: 'Rations / Food (Days)', quantity: 3 },
+        ];
+
+        function populateEquipmentList() {
+            const listContainer = document.getElementById('equipment-list');
+            let currentCategory = '';
+            equipmentItems.forEach(eq => {
+                if (eq.category !== currentCategory) {
+                    currentCategory = eq.category;
+                    listContainer.innerHTML += `<h3 class="text-base font-semibold leading-6 text-gray-900 mt-6 mb-2">${currentCategory}</h3>`;
+                }
+                listContainer.innerHTML += `
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center mb-2">
+                        <label class="sm:col-span-4 block text-sm font-medium text-gray-900">${eq.item}</label>
+                        <div class="sm:col-span-2"><input type="number" value="${eq.quantity}" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"></div>
+                        <div class="sm:col-span-3">
+                            <select class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-green-600">
+                                <option>OK</option>
+                                <option>Needs Repair</option>
+                                <option>Needs Refill</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-3"><input type="text" placeholder="Remarks..." class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300"></div>
+                    </div>
+                `;
+            });
+        }
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            changeTab('patrol');
+            addTransportEntry();
+            populateEquipmentList();
+        });
+    </script>
+</body>
+</html>
