@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map of Port Barton Marine Park</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        .leaflet-popup-content {
+            margin: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .popup-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #1f2937;
+        }
+        .popup-category {
+            font-weight: 500;
+            font-size: 12px;
+            color: #4b5563;
+            background-color: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 9999px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-gray-900">Port Barton Marine Park: An Interactive Map</h1>
+                <p class="mt-2 text-gray-600">This map visualizes the key locations within the Port Barton Marine Park, including popular tour destinations and the proposed strategic sites for the "Ang Luntiang Pangarap" infrastructure projects. Click on the markers to learn more about each point.</p>
+            </div>
+            <div id="map" style="height: 600px; width: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        // Initialize the map and set its view to Port Barton's coordinates and a default zoom level
+        const map = L.map('map').setView([10.46, 119.25], 12);
+
+        // Add a tile layer to add to our map, in this case it's OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // --- Custom Icons ---
+        // Function to create styled icons
+        const createIcon = (color, svgPath) => {
+            return L.divIcon({
+                html: `<div class="p-2 rounded-full shadow-lg" style="background-color: ${color};">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                               ${svgPath}
+                           </svg>
+                       </div>`,
+                className: 'bg-transparent',
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+        };
+        
+        // Define SVG paths for different icons
+        const icons = {
+            tour: createIcon('#10B981', '<path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />'),
+            outpost: createIcon('#EF4444', '<path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />'),
+            market: createIcon('#3B82F6', '<path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />'),
+            reef: createIcon('#F59E0B', '<path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />')
+        };
+
+        // --- Map Locations Data ---
+        const locations = [
+            // Tour Destinations
+            { lat: 10.4035, lng: 119.1718, title: 'Port Barton Town', category: 'Main Hub', description: 'The main departure point for all island hopping tours and the heart of the community.' },
+            { lat: 10.5333, lng: 119.2833, title: 'Albaguen Island', category: 'Tour Destination', description: 'Features the legally protected core zone of the marine park.' },
+            { lat: 10.4550, lng: 119.1650, title: 'Exotic Island (Maxima Island)', category: 'Tour Destination', description: 'A popular stop known for its beautiful sandbar and clear waters.' },
+            { lat: 10.489, lng: 119.204, title: 'Aquarium Reef', category: 'Snorkeling Area', description: 'A key snorkeling destination, often referred to as Aquarium Reef 1 or 2.' },
+            { lat: 10.4333, lng: 119.1500, title: 'White Beach', category: 'Tour Destination', description: 'A stunning stretch of white sand, perfect for swimming and relaxation.' },
+            { lat: 10.50, lng: 119.23, title: 'Giant Clam Sandbar', category: 'Snorkeling Area', description: 'A protected area to see giant clams and a common lunch stop.' },
+             { lat: 10.40, lng: 119.28, title: 'Manta Ray Reef', category: 'Snorkeling Area', description: 'A proposed protected area known for its vibrant marine life.' },
+
+            // Proposed Infrastructure
+            { lat: 10.56, lng: 119.30, title: 'Outpost: "The Guardian Angel\'s Watch"', category: 'Luntian Floating Outpost', description: 'Strategic outpost for the Guardians Brotherhood, monitoring the northern boundary of the PBMP.' },
+            { lat: 10.35, lng: 119.15, title: 'Outpost: "Omega Omicron"', category: 'Luntian Floating Outpost', description: 'Outpost for Alpha Rho Sigma, securing the southern access points.' },
+            { lat: 10.48, lng: 119.14, title: 'Outpost: "The Trident\'s Post"', category: 'Luntian Floating Outpost', description: 'AKRHO outpost overlooking key western reefs.' },
+            { lat: 10.41, lng: 119.32, title: 'Outpost: "The Sentinel\'s Shield"', category: 'Luntian Floating Outpost', description: 'COMANDO Brotherhood outpost monitoring the eastern waters.' },
+            { lat: 10.50, lng: 119.25, title: 'Outpost: "The Panther\'s Perch"', category: 'Luntian Floating Outpost', description: 'PANTERA outpost providing central coverage within the park.' },
+
+            { lat: 10.41, lng: 119.18, title: 'Luntian Floating Market - TDC', category: 'Community Enterprise', description: 'Proposed site for a floating market stall to serve tourists and the TDC community.' },
+            { lat: 10.44, lng: 119.20, title: 'Luntian Floating Market - Darapiton', category: 'Community Enterprise', description: 'Proposed site for a floating market stall, connecting aquaculture farms to consumers.' },
+            
+            { lat: 10.47, lng: 119.22, title: 'Luntian House Reef', category: 'Conservation Site', description: 'Designated area for the Luntian Genesis Reef project, the future center of coral restoration and the main event of the LUNTIAN Festival.' }
+        ];
+
+        // --- Add Markers to Map ---
+        locations.forEach(loc => {
+            let icon;
+            switch(loc.category) {
+                case 'Luntian Floating Outpost':
+                    icon = icons.outpost;
+                    break;
+                case 'Community Enterprise':
+                    icon = icons.market;
+                    break;
+                case 'Conservation Site':
+                    icon = icons.reef;
+                    break;
+                default:
+                    icon = icons.tour;
+            }
+
+            const marker = L.marker([loc.lat, loc.lng], { icon: icon }).addTo(map);
+            
+            // Create popup content
+            const popupContent = `
+                <div class="popup-title">${loc.title}</div>
+                <div class="popup-category">${loc.category}</div>
+                <p class="mt-2 text-gray-700">${loc.description}</p>
+            `;
+            
+            marker.bindPopup(popupContent);
+        });
+
+    </script>
+</body>
+</html>
